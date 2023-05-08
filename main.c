@@ -15,12 +15,14 @@
 
 struct Rocket {
     char name[10];
-    int speed; //speed of the rocket
+    int speed; //speed of the rocket ()
     int acc; //acceleration
     int posY;
     int posX;
     int angle;
+    int score;
     bool crashed;
+    int hearts;
 
 };
 
@@ -29,6 +31,7 @@ struct BlackHole {
     int posX;
     int status;
 };
+
 
 struct Rocket * newRocket (char _name[10], int Y, int X, int _angle) {
 
@@ -39,14 +42,151 @@ struct Rocket * newRocket (char _name[10], int Y, int X, int _angle) {
     rocket -> posX = X;
     rocket -> crashed = false;
     rocket -> angle = _angle;
+    rocket -> speed = 1;
+    rocket -> acc = 1;
+    rocket -> score = 0;
+    rocket -> hearts = 5;
     
     return rocket;
 }
 
+
+struct BlackHole * newBlackHole (int Y, int X) {
+
+    struct BlackHole * bh = (struct BlackHole *) malloc(sizeof(struct BlackHole));
+
+   
+    bh -> posY = Y;
+    bh -> posX = X;
+    bh -> status = 1;
+    
+    return bh;
+}
+
+void checkCollisionBH (struct BlackHole * b, struct Rocket * r) {
+    if (b -> posY == r -> posY && b -> posX == r -> posX) {
+        //if this happens, the collision has happened
+        r -> crashed = true;
+    }
+}
+
+void checkCollisionRockets (struct Rocket * r1, struct Rocket * r2) {
+    if (r1 -> posY == r2 -> posY && r1 -> posX == r2 -> posX) {
+        //if this happens, the collision has happened
+        r1 -> crashed = true;
+        r2 -> crashed = true;
+    }
+}
+
+void checkCollisionBorders (struct Rocket * r, WINDOW * screen, int _yMax, int _xMax) {
+    if (r->posY < (_yMax - BOARD_COLS)/2 + 1)  //Limitations so it doesnt go out of the box
+        r->posY = (_yMax - BOARD_COLS)/2 + 1; 
+
+    if (r->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2) //Limitations so it doesnt go out of the box
+        r->posY = (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2; 
+
+    if (r->posX < (_xMax/2) - (BOARD_ROWS/2) + 1) //Limitations so it doesnt go out of the box
+        r->posX = (_xMax/2) - (BOARD_ROWS/2) + 1; 
+
+    if (r->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS + - 2) //Limitations so it doesnt go out of the box
+        r->posX = (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS + - 2; 
+
+}
+
+void empty(struct Rocket * r) {
+    move(r->posY, r->posX);
+    printw(" ");
+}
+
+void printRocket (struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+    switch (r1 -> angle)
+    {
+    case 0:
+        checkCollisionBorders(r1, screen, _yMax, _xMax);
+        checkCollisionRockets(r1, r2);
+        move(r1 -> posY, r1 -> posX);
+        printw (">");
+        break;
+    case 90:
+        checkCollisionBorders(r1, screen, _yMax, _xMax);
+        checkCollisionRockets(r1, r2);
+        move(r1 -> posY, r1 -> posX);
+        printw ("^");
+        break;
+    case 180:
+        checkCollisionBorders(r1, screen, _yMax, _xMax);
+        checkCollisionRockets(r1, r2);
+        move(r1 -> posY, r1 -> posX);
+        printw ("<");
+        break;
+    case 270:
+        checkCollisionBorders(r1, screen, _yMax, _xMax);
+        checkCollisionRockets(r1, r2);
+        move(r1 -> posY, r1 -> posX);
+        printw ("v");
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void rocketThrust (struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+
+    int newYDown = r1 -> posY + r1 -> speed;
+    int newXRight = r1 -> posX + r1 -> speed;
+    int newYUp = r1 -> posY - r1 -> speed;
+    int newXLeft = r1 -> posX - r1 -> speed;
+
+    switch (r1 -> angle)
+    {
+    case 0:
+        empty(r1);
+        move (r1 -> posY, newXRight);
+        r1 -> posX = newXRight; //updates the new X
+        printRocket(r1, r2, screen, _yMax, _xMax);
+        break;
+    case 90:
+        empty(r1);
+        move (newYUp, r1 -> posX);
+        r1 -> posY = newYUp; //updates the new Y
+        printRocket(r1, r2, screen, _yMax, _xMax);
+
+        break;
+    case 180:
+        empty(r1);
+        move (r1 -> posY, newXLeft);
+        r1 -> posX = newXLeft; //updates the new X
+        printRocket(r1, r2, screen, _yMax, _xMax);
+
+        break;
+    case 270:
+        empty(r1);
+        move (newYDown, r1 -> posX);
+        r1 -> posY = newYDown; //updates the new Y
+        printRocket(r1, r2, screen, _yMax, _xMax);
+
+        break;
+    
+    default:
+        break;
+    }
+}
+
+
+
+
 void printWinner (struct Rocket * r1, struct Rocket * r2) {
     char loser[10];
     char winner[10];
-    if (r1 -> crashed == true) {
+    if (r1 -> crashed == true && r2 -> crashed == true) {
+        strcpy(loser, r1 -> name);
+        strcpy(winner, r2 -> name);
+        printf("The player %s and the player %s have crashed. Both lost.\n\n", loser, winner); //this is temportal, as the winner is the one who has more points
+        return;
+    }
+
+    else if (r1 -> crashed == true) {
         strcpy(loser, r1 -> name);
         strcpy(winner, r2 -> name);
     }
@@ -77,127 +217,125 @@ void changeBlackHole (WINDOW * screen, struct BlackHole * b) {
         
 }
 
-void collisionBH (struct BlackHole * b, struct Rocket * r) {
-    if (b -> posY == r -> posY && b -> posX == r -> posX) {
-        //if this happens, the collision has happened
-        r -> crashed = true;
-    }
-}
-
-
-void empty(struct Rocket * r) {
-    move(r->posY, r->posX);
-    printw(" ");
-}
-
-
 
 //Functions for the movement of the rocket
 
-void moveUp (struct Rocket * r, WINDOW * screen, int _yMax, int _xMax) {
-    empty(r);
-    r->posY--;
-
-    if (r->posY < (_yMax - BOARD_COLS)/2 + 1)  //Limitations so it doesnt go out of the box
-        r->posY = (_yMax - BOARD_COLS)/2 + 1; 
-
-
-    move(r->posY, r->posX);
-    addch('^');
-
-    r -> angle = 90;
-
-
+void rotateUp (struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+    r1 -> angle = 90;
+    printRocket(r1, r2, screen, _yMax, _xMax);
     wrefresh(screen);
     refresh();
 
 
 }
 
-void moveDown (struct Rocket * r, WINDOW * screen, int _yMax, int _xMax) {
-    empty(r);
-    r->posY++; //remember that if u add to Y, you go down in lines
-
-    if (r->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2) //Limitations so it doesnt go out of the box
-        r->posY = (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2; 
-
-    move(r->posY, r->posX);
-    addch('v');
-
-    r -> angle = 270;
-
+void rotateDown (struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+    r1 -> angle = 270;
+    printRocket(r1, r2, screen, _yMax, _xMax);  
     wrefresh(screen);
     refresh();
 }
 
 
-void moveLeft (struct Rocket * r, WINDOW * screen, int _yMax, int _xMax) {
-    empty(r);
-    r->posX--;
-
-    if (r->posX < (_xMax/2) - (BOARD_ROWS/2) + 1) //Limitations so it doesnt go out of the box
-        r->posX = (_xMax/2) - (BOARD_ROWS/2) + 1; 
-
-    move(r->posY, r->posX);
-    addch('<');
-
-    r -> angle = 180;
-
+void rotateLeft (struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+    r1 -> angle = 180;
+    printRocket(r1, r2, screen, _yMax, _xMax);
     wrefresh(screen);
     refresh();
 }
 
-void moveRight (struct Rocket * r, WINDOW * screen, int _yMax, int _xMax) {
-    empty(r);
-    r->posX++;
+void rotateRight (struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+    r1 -> angle = 0;
+    printRocket(r1, r2, screen, _yMax, _xMax);
+    wrefresh(screen);
+    refresh();
+}
 
-    if (r->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS + - 2) //Limitations so it doesnt go out of the box
-        r->posX = (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS + - 2; 
+int getRotation1(struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+
+        int KeyPress = wgetch(screen); //waits for input
     
-    move(r->posY, r->posX);
-    addch('>');
-
-    r -> angle = 0;
-
-    wrefresh(screen);
-    refresh();
-}
-
-int getMove(struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
-    int KeyPress = wgetch(screen); //waits for input
-
         switch (KeyPress)
         {
             case KEY_UP:
-                moveUp(r1, screen, _yMax, _xMax);
+                rotateUp(r2, r1, screen, _yMax, _xMax);
                 break;
 
             case KEY_DOWN:
-                moveDown(r1, screen, _yMax, _xMax);
+                rotateDown(r2, r1, screen, _yMax, _xMax);
                 break;
 
             case KEY_LEFT:
-                moveLeft(r1, screen, _yMax, _xMax);
+                rotateLeft(r2, r1, screen, _yMax, _xMax);
                 break;
 
             case KEY_RIGHT:
-                moveRight(r1, screen, _yMax, _xMax);
+                rotateRight(r2, r1, screen, _yMax, _xMax);
                 break;
 
             case 119:
-                moveUp(r2, screen, _yMax, _xMax);
+                rotateUp(r1, r2, screen, _yMax, _xMax);
                 break;
 
             case 115:
-                moveDown(r2, screen, _yMax, _xMax);
+                rotateDown(r1, r2, screen, _yMax, _xMax);
                 break;
 
             case 97:
-                moveLeft(r2, screen, _yMax, _xMax);
+                rotateLeft(r1, r2, screen, _yMax, _xMax);
                 break;
 
             case 100:
-                moveRight(r2, screen, _yMax, _xMax);
+                rotateRight(r1, r2, screen, _yMax, _xMax);
+                break;
+
+            default:
+                break;
+        }
+
+        refresh();
+        wrefresh(screen);
+        return KeyPress; //this might be necesary if we want to exit the program with a special key
+
+
+}
+
+int getRotation2(struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax) {
+
+        int KeyPress = wgetch(screen); //waits for input
+    
+        switch (KeyPress)
+        {
+            case KEY_UP:
+                rotateUp(r2, r1, screen, _yMax, _xMax);
+                break;
+
+            case KEY_DOWN:
+                rotateDown(r2, r1, screen, _yMax, _xMax);
+                break;
+
+            case KEY_LEFT:
+                rotateLeft(r2, r1, screen, _yMax, _xMax);
+                break;
+
+            case KEY_RIGHT:
+                rotateRight(r2, r1, screen, _yMax, _xMax);
+                break;
+
+            case 119:
+                rotateUp(r1, r2, screen, _yMax, _xMax);
+                break;
+
+            case 115:
+                rotateDown(r1, r2, screen, _yMax, _xMax);
+                break;
+
+            case 97:
+                rotateLeft(r1, r2, screen, _yMax, _xMax);
+                break;
+
+            case 100:
+                rotateRight(r1, r2, screen, _yMax, _xMax);
                 break;
 
             default:
@@ -231,33 +369,38 @@ int main()
     box(win, 0, 0); //creates a box inside of window-> arg2 and arg3 are the type of borders that the box has
     wrefresh(win); //refreshes the visuals of the window
     keypad(win, TRUE); //allows the use of arrow keys and F keys
+    halfdelay(1); //this is the amount of time in tenths per second to exit a getch if there is no input, so that the program continues
 
-    //INITIALISATION OF ROCKET 1
+    //INITIALISATION OF ROCKET 1 and 2
     struct Rocket * rocket1 = newRocket("Eric", (yMax - BOARD_COLS)/2 + BOARD_COLS - 2, (xMax/2) - (BOARD_ROWS/2) + 1, 90);
-    move(rocket1->posY, rocket1->posX ); //moves the cursor 
-    printw("^"); //prints the rocket
-
-    //INITIALISATION OF ROCKET 2 
     struct Rocket * rocket2 = newRocket("Player 2", (yMax - BOARD_COLS)/2 + 1, (xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS + - 2, 270);
+
+    //MOVE ROCKET 1
+    move(rocket1->posY, rocket1->posX ); //moves the cursor 
+    printRocket(rocket1, rocket2, win, yMax, xMax); //prints the rocket
+
+    //MOVE ROCKET 2
     move(rocket2->posY, rocket2->posX ); //moves the cursor 
-    printw("v"); //prints the rocket
+    printRocket(rocket2, rocket1, win, yMax, xMax); //prints the rocket
 
     //INITIALISATION OF BLACK HOLE
-    struct BlackHole * hole = (struct BlackHole *) malloc(sizeof(struct Rocket));
-    hole -> posY = yMax/2;
-    hole -> posX = xMax/2;
-    hole -> status = 0;
+    struct BlackHole * hole = newBlackHole(yMax/2, xMax/2);
+    
+
     refresh();
 
-    while( rocket1 -> crashed != true && rocket2 -> crashed != true) //game loop 
+
+    while( rocket1 -> crashed != true && rocket2 -> crashed != true) //game loop
     {   
         changeBlackHole(win, hole);  
         wrefresh(win);
-        getMove(rocket1, rocket2, win,yMax, xMax);
+        getRotation1(rocket1, rocket2, win,yMax, xMax);
+        getRotation2(rocket1, rocket2, win,yMax, xMax);
         wrefresh(win); 
-        collisionBH(hole, rocket1);
-        collisionBH(hole, rocket2);
-        
+        checkCollisionBH(hole, rocket1);
+        checkCollisionBH(hole, rocket2);
+        rocketThrust(rocket1, rocket2,  win, yMax, xMax);
+        rocketThrust(rocket2, rocket1, win, yMax, xMax);        
     }
 
     //END OF THE GAME
