@@ -12,6 +12,7 @@
 #define BOARD_COLS BOARD_DIMENSIONS
 #define BOARD_ROWS BOARD_DIMENSIONS * 2.5  //the ratio of the size of rows to cols is aprox 2->5
 #define MAX_BULLETS 7
+#define MAX_POINTS 2
 
 
 
@@ -459,25 +460,22 @@ void rocketThrust (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax,
 void printWinner (struct Rocket * r1, struct Rocket * r2) {
     char loser[10];
     char winner[10];
-    if (r1 -> crashed == true && r2 -> crashed == true) {
-        strcpy(loser, r1 -> name);
-        strcpy(winner, r2 -> name);
-        printf("The player %s and the player %s have crashed. Both lost.\n\n", loser, winner); //this is temportal, as the winner is the one who has more points
-        return;
-    }
 
-    else if (r1 -> crashed == true) {
+    if ((r1 -> score) < (r2 -> score)) {
         strcpy(loser, r1 -> name);
         strcpy(winner, r2 -> name);
     }
         
-    else {
+    if ((r1 -> score) > (r2 -> score)) {
         strcpy(loser, r2 -> name);
         strcpy(winner, r1 -> name);
     }
         
 
-    printf("The player %s has crashed. %s has won the game\n\n", loser, winner);
+    printf("%s = %d points\n", r1 -> name, r1 -> score);
+    printf("%s = %d points\n", r2 -> name, r2 -> score);
+    printf("The WINNER is %s. Sorry %s, maybe next time buddy.\n", winner, loser);
+
 }
 
 void changeBlackHole (WINDOW * screen, struct BlackHole * b) {
@@ -743,11 +741,9 @@ void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax
     if (((r1 -> posX) == (_xMax/2)) && ((r1 -> posY) <= (_yMax/2))) { //Upper Y
 
         delRocket(r1);
-
         
         r1 -> posY = (r1 -> posY) + (r1 -> gravity);
         
-
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
 
@@ -755,7 +751,6 @@ void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax
 
         delRocket(r1);
 
-        
         r1 -> posY = r1 -> posY - r1 -> gravity;
 
         printRocket(r1, r2, _yMax, _xMax, bh);
@@ -765,10 +760,8 @@ void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax
 
         delRocket(r1);
 
-        
         r1 -> posX = r1 -> posX + (r1 -> gravity);
         
-
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
 
@@ -776,45 +769,47 @@ void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax
 
         delRocket(r1);
 
-        
         r1 -> posX = r1 -> posX - (r1 -> gravity);
         
-
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
 
 }
 
 void printScore1 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY + 3 ;
-    int x = r -> posX + 1;
+    int y = r -> startY + 3 ;
+    int x = r -> startX + 1;
     move(y, x);
     printw("%s = %d", r -> name, r -> score);
 }
 
 void printScore2 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY - 3 ;
-    int x = r -> posX - 10;
+    int y = r -> startY - 3 ;
+    int x = r -> startX - 10;
     move(y, x);
     printw("%s = %d", r -> name, r -> score);
 }
 
 void printFuel1 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY + 3 ;
-    int x = r -> posX + 1 + 18;
+    int y = r -> startY + 3 ;
+    int x = r -> startX + 1 + 18;
     move(y, x);
     printw("Fuel = %d", r -> fuel);
 }
 
 void printFuel2 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY - 3 ;
-    int x = r -> posX - 10 - 18;
+    int y = r -> startY - 3 ;
+    int x = r -> startX - 10 - 18;
     move(y, x);
     printw("Fuel = %d", r -> fuel);
 }
 
-void addScore (struct Rocket * r) {
+void addScore (struct Rocket * r1, struct Rocket * r2) {
     //If something happens, add +10 to the score, and print it again.
+    if (r1 -> crashed == true)
+        r2 -> score = r2 -> score + 1;
+    if (r2 -> crashed == true)
+        r1 -> score = r1 -> score + 1;
 }
 
 void gravityBullet (struct Bullet * b, int _yMax, int _xMax) {
@@ -863,6 +858,67 @@ void gravityBullet (struct Bullet * b, int _yMax, int _xMax) {
 
 }
 
+void createScenario (struct Rocket * r1, struct Rocket * r2) {
+    //MOVE ROCKET 1
+    move(r1->startY, r1->startX ); //moves the cursor 
+    printRocketStart(r1); //prints the rocket
+
+    //MOVE ROCKET 2
+    move(r2->startY, r2->startX ); //moves the cursor 
+    printRocketStart(r2); //prints the rocket
+
+    //Print score, when score = 5, stop the game.
+    printScore1(r1);
+    printScore2(r2);
+    printFuel1(r1);
+    printFuel2(r2);
+}
+
+
+void gameRunner (struct Bullet * buls[], struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh, WINDOW * screen) {
+    while ((r1 -> crashed != true) && (r2 -> crashed != true)) //game loop
+    {   
+        changeBlackHole(screen, bh);  //Gives an animation to the black blackhole
+        
+        for (int i = 0; i < MAX_BULLETS; i++) {
+            buls[i] = getKeys(buls[i], r1, r2, screen,  _yMax, _xMax, bh); //gets input
+
+            if ((buls[i] != NULL) && (buls[i] -> crashed == false)) { //if buls[i] is NULL ignore it
+                bulletThrust(buls[i], _yMax, _xMax);
+            }            
+        }
+
+        gravityRocket(r1, r2, _yMax, _xMax, bh);
+        gravityRocket(r2, r1, _yMax, _xMax, bh);
+    }
+}
+
+void resetRockets (struct Rocket * r1, struct Rocket * r2) {
+    //Reset crash state of rockets
+    r1 -> crashed = false;
+    r2 -> crashed = false;
+
+    //Reset fuel of rockets
+    r1 -> fuel = 100;
+    r2 -> fuel = 100;
+
+    //Clear previous rockets
+    delRocket(r1); 
+    delRocket(r2); 
+
+    //Reset rockets positions
+    r1 -> posX = r1 -> startX;
+    r1 -> posY = r1 -> startY;
+
+    r2 -> posX = r2 -> startX;
+    r2 -> posY = r2 -> startY;
+
+    //Reset hyperSpace of rockets
+    r1 -> hyperSpace = false;
+    r2 -> hyperSpace = false;
+
+    
+}
 
 
 
@@ -904,43 +960,22 @@ int main()
 
     //INITIALISATION OF BLACK HOLE
     struct BlackHole * hole = newBlackHole(yMax/2, xMax/2);
-
-    //MOVE ROCKET 1
-    move(rocket1->posY, rocket1->posX ); //moves the cursor 
-    printRocketStart(rocket1); //prints the rocket
-
-    printw("test 2");
-
-    //MOVE ROCKET 2
-    move(rocket2->posY, rocket2->posX ); //moves the cursor 
-    printRocketStart(rocket2); //prints the rocket
-
-    //Print score, when score = 5, stop the game.
-    printScore1(rocket1);
-    printScore2(rocket2);
-    printFuel1(rocket1);
-    printFuel2(rocket2);
-
     struct Bullet * bullet[MAX_BULLETS];
 
 
     refresh();
 
-    while (rocket1 -> crashed != true && rocket2 -> crashed != true) //game loop
-    {   
-        changeBlackHole(win, hole);  //Gives an animation to the black hole
-        
-        for (int i = 0; i < MAX_BULLETS; i++) {
-            bullet[i] = getKeys(bullet[i], rocket1, rocket2, win,  yMax, xMax, hole); //gets input
-
-            if ((bullet[i] != NULL) && (bullet[i] -> crashed == false)) { //if bullet[i] is NULL ignore it
-                bulletThrust(bullet[i], yMax, xMax);
-            }            
-        }
-
-        gravityRocket(rocket1, rocket2, yMax, xMax, hole);
-        gravityRocket(rocket2, rocket1, yMax, xMax, hole);
+    while ((rocket1 -> score != MAX_POINTS) && (rocket2 -> score != MAX_POINTS)) {
+        createScenario(rocket1, rocket2); //create screen with rockets, score, and fuel
+        gameRunner(bullet, rocket1, rocket2, yMax, xMax, hole, win); 
+        addScore(rocket1, rocket2);
+        resetRockets(rocket1, rocket2);
     }
+    
+
+    
+
+
 
     //END OF THE GAME
     endwin(); //stops the window, terminates the program
