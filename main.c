@@ -279,10 +279,70 @@ void checkCollisionBorders (struct Rocket * r, int _yMax, int _xMax) {
 }
 
 
+
+
+void delRocketTrail(struct Rocket * r) {
+    
+    switch (r -> angle)
+    {
+    case 0:
+        move(r -> posY, r -> posX - 1);//delete movement trail
+        printw (" ");
+        break;
+    case 90:
+        move(r -> posY + 1, r -> posX);//delete movement trail
+        printw (" ");
+        break;
+    case 180:
+        move(r -> posY, r -> posX + 1);//delete movement trail
+        printw (" ");
+        break;
+    case 270:
+        move(r -> posY - 1, r -> posX);//delete movement trail
+        printw (" ");
+        break;
+    
+    default:
+        break;
+    }
+}
+
 void delRocket(struct Rocket * r) {
     move(r->posY, r->posX);
     printw(" ");
+    
+    delRocketTrail(r);
+
 }
+
+void printRocketTrail (struct Rocket * r1) {
+    switch (r1 -> angle)
+    {
+    case 0:
+        move(r1 -> posY, r1 -> posX - 1);//Add movement trail
+        printw (")");
+        break;
+    case 90:
+        move(r1 -> posY + 1, r1 -> posX);//Add movement trail
+        printw ("|");
+        break;
+    case 180:
+        move(r1 -> posY, r1 -> posX + 1);//Add movement trail
+        printw ("(");
+        break;
+    case 270:
+        move(r1 -> posY - 1, r1 -> posX); //Add movement trail
+        printw ("|");
+        break;
+    
+    default:
+        break;
+    }
+
+    refresh();
+}
+
+
 
 void printRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh) {
     switch (r1 -> angle)
@@ -293,6 +353,7 @@ void printRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
         checkCollisionBH (bh, r1);
         move(r1 -> posY, r1 -> posX);
         printw (">");
+        printRocketTrail(r1);
         break;
     case 90:
         checkCollisionBorders(r1, _yMax, _xMax);
@@ -300,6 +361,7 @@ void printRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
         checkCollisionBH (bh, r1);
         move(r1 -> posY, r1 -> posX);
         printw ("^");
+        printRocketTrail(r1);
         break;
     case 180:
         checkCollisionBorders(r1, _yMax, _xMax);
@@ -307,6 +369,7 @@ void printRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
         checkCollisionBH (bh, r1);
         move(r1 -> posY, r1 -> posX);
         printw ("<");
+        printRocketTrail(r1);
         break;
     case 270:
         checkCollisionBorders(r1, _yMax, _xMax);
@@ -314,6 +377,7 @@ void printRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
         checkCollisionBH (bh, r1);
         move(r1 -> posY, r1 -> posX);
         printw ("v");
+        printRocketTrail(r1);
         break;
     
     default:
@@ -325,14 +389,14 @@ void printRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
 
 void updateFuel (struct Rocket * r) { //Print score of rocket 1
     if (r -> number == 1) {
-        int y = r -> startY + 2 ;
+        int y = r -> startY + 3 ;
         int x = r -> startX + 1 + 18;
         move(y, x);
         printw("Fuel = %d ", r -> fuel);
     }
 
     if (r -> number == 2) {
-        int y = r -> startY - 2 ;
+        int y = r -> startY - 3 ;
         int x = r -> startX - 10 - 18;
         move(y, x);
         printw("Fuel = %d ", r -> fuel);
@@ -459,24 +523,28 @@ void rotateLeft (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
     switch (r1 -> angle)
     {
         case 0:
+            delRocketTrail(r1);
             r1 -> angle = 90;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
             break;
 
         case 90:
+            delRocketTrail(r1);
             r1 -> angle = 180;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
             break;
 
         case 180:
+            delRocketTrail(r1);
             r1 -> angle = 270;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
             break;
 
         case 270:
+            delRocketTrail(r1);
             r1 -> angle = 0;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
@@ -492,24 +560,28 @@ void rotateRight (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
     switch (r1 -> angle)
     {
         case 0:
+            delRocketTrail(r1);
             r1 -> angle = 270;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
             break;
 
         case 270:
+            delRocketTrail(r1);
             r1 -> angle = 180;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
             break;
 
         case 180:
+            delRocketTrail(r1);
             r1 -> angle = 90;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
             break;
 
         case 90:
+            delRocketTrail(r1);
             r1 -> angle = 0;
             printRocket(r1, r2, _yMax, _xMax, bh);
             refresh();
@@ -669,28 +741,28 @@ void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax
 }
 
 void printScore1 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY + 2 ;
+    int y = r -> posY + 3 ;
     int x = r -> posX + 1;
     move(y, x);
     printw("%s = %d", r -> name, r -> score);
 }
 
 void printScore2 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY - 2 ;
+    int y = r -> posY - 3 ;
     int x = r -> posX - 10;
     move(y, x);
     printw("%s = %d", r -> name, r -> score);
 }
 
 void printFuel1 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY + 2 ;
+    int y = r -> posY + 3 ;
     int x = r -> posX + 1 + 18;
     move(y, x);
     printw("Fuel = %d", r -> fuel);
 }
 
 void printFuel2 (struct Rocket * r) { //Print score of rocket 1
-    int y = r -> posY - 2 ;
+    int y = r -> posY - 3 ;
     int x = r -> posX - 10 - 18;
     move(y, x);
     printw("Fuel = %d", r -> fuel);
@@ -780,8 +852,8 @@ int main()
     
 
     //INITIALISATION OF ROCKET 1 and 2
-    struct Rocket * rocket1 = newRocket("Player 1", (yMax - BOARD_COLS)/2 + BOARD_COLS - 2, (xMax/2) - (BOARD_ROWS/2) + 1, 90, 1);
-    struct Rocket * rocket2 = newRocket("Player 2", (yMax - BOARD_COLS)/2 + 1, (xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 2, 270, 2);
+    struct Rocket * rocket1 = newRocket("Player 1", (yMax - BOARD_COLS)/2 + BOARD_COLS - 3, (xMax/2) - (BOARD_ROWS/2) + 1, 90, 1);
+    struct Rocket * rocket2 = newRocket("Player 2", (yMax - BOARD_COLS)/2 + 2, (xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 2, 270, 2);
 
     
 
