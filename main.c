@@ -852,8 +852,8 @@ int main()
     
 
     //INITIALISATION OF ROCKET 1 and 2
-    struct Rocket * rocket1 = newRocket("Player 1", (yMax - BOARD_COLS)/2 + BOARD_COLS - 3, (xMax/2) - (BOARD_ROWS/2) + 1, 90, 1);
-    struct Rocket * rocket2 = newRocket("Player 2", (yMax - BOARD_COLS)/2 + 2, (xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 2, 270, 2);
+    struct Rocket * rocket1 = newRocket("Player 1", (yMax - BOARD_COLS)/2 + BOARD_COLS - 3, (xMax/2) - (BOARD_ROWS/2) + 2, 90, 1);
+    struct Rocket * rocket2 = newRocket("Player 2", (yMax - BOARD_COLS)/2 + 2, (xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 3, 270, 2);
 
     
 
