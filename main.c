@@ -698,42 +698,87 @@ void startScreen(int _yMax, int _xMax, WINDOW * screen) {
 void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh) {
 
 
-    if ((r1 -> posX) <= (_xMax/2) && (r1 -> posY) <= (_yMax/2)) { //Top Left Quadrant 1
+    if ((r1 -> posX) < (_xMax/2) && (r1 -> posY) < (_yMax/2)) { //Top Left Quadrant 1
 
         delRocket(r1);
 
         r1 -> posY = r1 -> posY + r1 -> gravity;
-        r1 -> posX = r1 -> posX + (r1 -> gravity) * 1;
+        r1 -> posX = r1 -> posX + (r1 -> gravity);
 
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
 
-    else if ((r1 -> posX) >= (_xMax/2) && (r1 -> posY) <= (_yMax/2)) { //Top Right Quadrant 2
+    else if ((r1 -> posX) > (_xMax/2) && (r1 -> posY) < (_yMax/2)) { //Top Right Quadrant 2
 
         delRocket(r1);
 
         r1 -> posY = r1 -> posY + r1 -> gravity;
-        r1 -> posX = r1 -> posX - (r1 -> gravity) * 1;
+        r1 -> posX = r1 -> posX - (r1 -> gravity);
 
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
 
-    else if ((r1 -> posX) <= (_xMax/2) && (r1 -> posY) >= (_yMax/2)) { //Bottom Left Quadrant 3
+    else if ((r1 -> posX) < (_xMax/2) && (r1 -> posY) > (_yMax/2)) { //Bottom Left Quadrant 3
 
         delRocket(r1);
 
         r1 -> posY = r1 -> posY - r1 -> gravity;
-        r1 -> posX = r1 -> posX + (r1 -> gravity) * 1;
+        r1 -> posX = r1 -> posX + (r1 -> gravity);
 
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
 
-    else if ((r1 -> posX) >= (_xMax/2) && (r1 -> posY) >= (_yMax/2)) { //Bottom Right Quadrant 4
+    else if ((r1 -> posX) > (_xMax/2) && (r1 -> posY) > (_yMax/2)) { //Bottom Right Quadrant 4
 
         delRocket(r1);
 
         r1 -> posY = r1 -> posY - r1 -> gravity;
-        r1 -> posX = r1 -> posX - (r1 -> gravity) * 1;
+        r1 -> posX = r1 -> posX - (r1 -> gravity);
+
+        printRocket(r1, r2, _yMax, _xMax, bh);
+    }
+
+    /*----------------------------------------------------------------------------------------------------*/
+    //This is only for the axis
+    if (((r1 -> posX) == (_xMax/2)) && ((r1 -> posY) <= (_yMax/2))) { //Upper Y
+
+        delRocket(r1);
+
+        
+        r1 -> posY = (r1 -> posY) + (r1 -> gravity);
+        
+
+        printRocket(r1, r2, _yMax, _xMax, bh);
+    }
+
+    else if (((r1 -> posX) == (_xMax/2)) && ((r1 -> posY) >= (_yMax/2))) { //Lower Y
+
+        delRocket(r1);
+
+        
+        r1 -> posY = r1 -> posY - r1 -> gravity;
+
+        printRocket(r1, r2, _yMax, _xMax, bh);
+    }
+
+    else if (((r1 -> posX) <= (_xMax/2)) && ((r1 -> posY) == (_yMax/2))) { //Bottom Left Quadrant 3
+
+        delRocket(r1);
+
+        
+        r1 -> posX = r1 -> posX + (r1 -> gravity);
+        
+
+        printRocket(r1, r2, _yMax, _xMax, bh);
+    }
+
+    else if (((r1 -> posX) >= (_xMax/2)) && ((r1 -> posY) == (_yMax/2))) { //Bottom Right Quadrant 4
+
+        delRocket(r1);
+
+        
+        r1 -> posX = r1 -> posX - (r1 -> gravity);
+        
 
         printRocket(r1, r2, _yMax, _xMax, bh);
     }
