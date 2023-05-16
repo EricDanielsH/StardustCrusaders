@@ -11,8 +11,9 @@
 #define BOARD_DIMENSIONS  50 //If this number in odd, some problems will happen to the box
 #define BOARD_COLS BOARD_DIMENSIONS
 #define BOARD_ROWS BOARD_DIMENSIONS * 2.5  //the ratio of the size of rows to cols is aprox 2->5
-#define MAX_BULLETS 7
-#define MAX_POINTS 2
+#define MAX_BULLETS 15 //This is the max amount of bullet that a rocket can shoot in total
+#define MAX_POINTS 5
+
 
 
 
@@ -26,6 +27,7 @@ struct Rocket {
     int score;
     int gravity;
     int fuel;
+    int acc; //acceleration, used when thrusting
     bool crashed;
     bool hyperSpace;
 
@@ -45,6 +47,7 @@ struct Bullet {
     int posY;
     int posX;
     int direction;
+    bool active;
     bool crashed;
 };
 
@@ -58,7 +61,8 @@ struct Rocket * newRocket (char _name[10], int Y, int X, int _angle, int _number
     rocket -> posX = X;
     rocket -> crashed = false;
     rocket -> angle = _angle;
-    rocket -> speed = 2;
+    rocket -> speed = 1;
+    rocket -> acc = 4;
     rocket -> score = 0;
     rocket -> gravity = 1;
     rocket -> fuel = 100;
@@ -84,43 +88,8 @@ struct BlackHole * newBlackHole (int Y, int X) {
     return bh;
 }
 
-
-
-void bulletCollisionBorders (struct Bullet * b, int _yMax, int _xMax) {
-
-    //Add 6 to each one so it doesnt clear the border
-
-    if (b->posY < (_yMax - BOARD_COLS)/2 + 5)  //Limitations so it doesnt go out from the top
-        b ->crashed = true;
-
-    if (b->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 6) //Limitations so it doesnt go out from the bottom
-        b ->crashed = true;
-
-    if (b->posX < (_xMax/2) - (BOARD_ROWS/2) + 6) //Limitations so it doesnt go out from the left
-        b ->crashed = true;
-
-    if (b->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 6) //Limitations so it doesnt go out of from the right
-        b ->crashed = true;
-
-}
-
-void bulletCollisionBullets (struct Bullet * b1, struct Bullet * b2) { //WORKING ON THIS
-
-    if ((b1->posX == b2->posX) && (b1->posY == b2->posY) ) 
-        b1 ->crashed = true;
-        b2 ->crashed = true;
-
-
-}
-
-void colBulletxRocket (struct Bullet * b, struct Rocket * r) { //WORKING ON THIS
-
-    //Add 6 to each one so it doesnt clear the border
-    if ((b->posX  == r->posX) && (b->posY == r->posY) )  
-        b ->crashed = true;
-        r ->crashed = true;
-
-
+bool check_collisions (int x1, int y1, int x2, int y2) { //for general purposes
+    return (x1 == x2 && y1 == y2);
 }
 
 void delBullet (struct Bullet * b) {
@@ -128,6 +97,31 @@ void delBullet (struct Bullet * b) {
     printw(" ");
     refresh();
 }
+
+void bulletCollisionBorders (struct Bullet * b, int _yMax, int _xMax) {
+
+    //Add 6 to each one so it doesnt clear the border
+
+    if (b->posY < (_yMax - BOARD_COLS)/2 + 5)  //Limitations so it doesnt go out from the top
+        b -> active = false;
+
+    if (b->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 6) //Limitations so it doesnt go out from the bottom
+        b ->active = false;
+
+    if (b->posX < (_xMax/2) - (BOARD_ROWS/2) + 6) //Limitations so it doesnt go out from the left
+        b ->active = false;
+
+    if (b->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 6) //Limitations so it doesnt go out of from the right
+        b ->active = false;
+
+    if (!b -> active)
+        delBullet(b);
+
+}
+
+
+
+
 
 void printBullet (struct Bullet * b, int _yMax, int _xMax) {
     bulletCollisionBorders(b, _yMax, _xMax);
@@ -178,7 +172,7 @@ struct Bullet * newBullet (struct Rocket * r, int _yMax, int _xMax) { //bullets 
 
     struct Bullet * b = (struct Bullet *) malloc(sizeof(struct Bullet));
 
-    b -> speed = 4;
+    b -> speed = 2;
 
     b -> direction = r -> angle;
 
@@ -265,17 +259,17 @@ void checkCollisionRockets (struct Rocket * r1, struct Rocket * r2) {
 }
 
 void checkCollisionBorders (struct Rocket * r, int _yMax, int _xMax) {
-    if (r->posY < (_yMax - BOARD_COLS)/2 + 1)  //Limitations so it doesnt go out of the box UPPER
-        r->posY = (_yMax - BOARD_COLS)/2 + 1; 
+    if (r->posY < (_yMax - BOARD_COLS)/2 + 2)  //Limitations so it doesnt go out of the box UPPER
+        r->posY = (_yMax - BOARD_COLS)/2 + 2; 
 
-    if (r->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2) //Limitations so it doesnt go out of the box LOWER
-        r->posY = (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2; 
+    if (r->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 3) //Limitations so it doesnt go out of the box LOWER
+        r->posY = (_yMax - BOARD_COLS)/2 + BOARD_COLS - 3; 
 
-    if (r->posX < (_xMax/2) - (BOARD_ROWS/2) + 1) //Limitations so it doesnt go out of the box LEFT
-        r->posX = (_xMax/2) - (BOARD_ROWS/2) + 1; 
+    if (r->posX < (_xMax/2) - (BOARD_ROWS/2) + 2) //Limitations so it doesnt go out of the box LEFT
+        r->posX = (_xMax/2) - (BOARD_ROWS/2) + 2; 
 
-    if (r->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 2) //Limitations so it doesnt go out of the box RIGHT
-        r->posX = (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 2; 
+    if (r->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 3) //Limitations so it doesnt go out of the box RIGHT
+        r->posX = (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 3; 
 
 }
 
@@ -408,10 +402,10 @@ void updateFuel (struct Rocket * r) { //Print score of rocket 1
 
 void rocketThrust (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh) {
 
-    int newYDown = r1 -> posY + r1 -> speed;
-    int newXRight = r1 -> posX + r1 -> speed;
-    int newYUp = r1 -> posY - r1 -> speed;
-    int newXLeft = r1 -> posX - r1 -> speed;
+    int newYDown = r1 -> posY + r1 -> acc;
+    int newXRight = r1 -> posX + r1 -> acc;
+    int newYUp = r1 -> posY - r1 -> acc;
+    int newXLeft = r1 -> posX - r1 -> acc;
 
     if (r1 -> fuel == 0)
         return;
@@ -620,7 +614,7 @@ void hyperSpace(struct Rocket * r, int _yMax, int _xMax, struct BlackHole * bh) 
 }
 
 
-struct Bullet * getKeys(struct Bullet * b, struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax, struct BlackHole * bh) {
+int getKeys(struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, int _xMax, struct BlackHole * bh) {
 
         int KeyPress = wgetch(screen); //waits for input
 
@@ -628,9 +622,7 @@ struct Bullet * getKeys(struct Bullet * b, struct Rocket * r1, struct Rocket * r
         switch (KeyPress)
         {
             case 119: //W == SHOOT
-                b = newBullet(r1, _yMax, _xMax);
-                return b;
-                break;
+                break; //Just going to use this to detect the key
 
             case 115: //S == THRUST
                 rocketThrust(r1, r2, _yMax, _xMax, bh);
@@ -645,9 +637,7 @@ struct Bullet * getKeys(struct Bullet * b, struct Rocket * r1, struct Rocket * r
                 break;
 
             case 105: //I == SHOOT
-                b = newBullet(r2, _yMax, _xMax);
-                return b;
-                break;
+                break; //Just going to use this to detect the key
 
             case 107://K == TRHUST
                 rocketThrust(r2, r1, _yMax, _xMax, bh);
@@ -676,7 +666,7 @@ struct Bullet * getKeys(struct Bullet * b, struct Rocket * r1, struct Rocket * r
 
         refresh();
         wrefresh(screen); //This refresh in necesary to use the arrow keys, so DO NOT DELETE
-        return b; 
+        return KeyPress; 
 
 
 }
@@ -690,7 +680,7 @@ void startScreen(int _yMax, int _xMax, WINDOW * screen) {
     halfdelay(50); //Gives 5 seconds to wait for any inpuy. Even if no key is pressed, the game will start after 5secs
     getch();
     erase();
-    halfdelay(1); //Go back to the lowest value of input waiting time`
+    halfdelay(2); //Go back to the lowest value of input waiting time`
 }
 
 void gravityRocket (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh) {
@@ -858,7 +848,12 @@ void gravityBullet (struct Bullet * b, int _yMax, int _xMax) {
 
 }
 
-void createScenario (struct Rocket * r1, struct Rocket * r2) {
+void createScenario (struct Rocket * r1, struct Rocket * r2, WINDOW * screen) {
+
+    erase();
+    box(screen, 0, 0);
+
+
     //MOVE ROCKET 1
     move(r1->startY, r1->startX ); //moves the cursor 
     printRocketStart(r1); //prints the rocket
@@ -872,24 +867,86 @@ void createScenario (struct Rocket * r1, struct Rocket * r2) {
     printScore2(r2);
     printFuel1(r1);
     printFuel2(r2);
+
+
 }
 
 
-void gameRunner (struct Bullet * buls[], struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh, WINDOW * screen) {
-    while ((r1 -> crashed != true) && (r2 -> crashed != true)) //game loop
-    {   
-        changeBlackHole(screen, bh);  //Gives an animation to the black blackhole
-        
-        for (int i = 0; i < MAX_BULLETS; i++) {
-            buls[i] = getKeys(buls[i], r1, r2, screen,  _yMax, _xMax, bh); //gets input
 
-            if ((buls[i] != NULL) && (buls[i] -> crashed == false)) { //if buls[i] is NULL ignore it
-                bulletThrust(buls[i], _yMax, _xMax);
-            }            
-        }
+bool colBulxBul (struct Bullet * b1, struct Bullet * b2) {
+    if (!b1 -> active || !b2 -> active) //If one of the bullets is not active, exit the function
+        return false;
+    
+    return (b1 ->posX == b2 -> posX && b1 -> posY == b2 -> posY); //If the position of the bullets is the same, return true, else return false
+}
+
+
+void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh, WINDOW * screen) {
+    
+    int bulletCounter1 = 0;
+    int bulletCounter2 = 0;
+    struct Bullet * bullet1[MAX_BULLETS];
+    struct Bullet * bullet2[MAX_BULLETS];
+
+
+    while ((r1 -> crashed != true) && (r2 -> crashed != true)) //game loop
+    {    
+        changeBlackHole(screen, bh);  //Gives an animation to the black blackhole
 
         gravityRocket(r1, r2, _yMax, _xMax, bh);
         gravityRocket(r2, r1, _yMax, _xMax, bh);
+
+        int input = getKeys(r1, r2, screen, _yMax, _xMax, bh); //Ask for an input
+
+        if (input == 119 && bulletCounter1 < MAX_BULLETS) { //Check if the key for shooting P1 has been pressed
+            bullet1[bulletCounter1] = newBullet(r1, _yMax, _xMax);
+            bullet1[bulletCounter1] -> active = true;
+            bulletCounter1++;
+        }
+
+        for (int i = 0; i < bulletCounter1; i++) { //Update the bullets already created
+            if (bullet1[i] -> active) 
+                bulletThrust(bullet1[i], _yMax, _xMax);
+        }
+
+        if (input == 105 && bulletCounter2 < MAX_BULLETS) { //Check if the key for shooting P2 has been pressed
+            bullet2[bulletCounter2] = newBullet(r2, _yMax, _xMax);
+            bullet2[bulletCounter2] -> active = true;
+            bulletCounter2++;
+        }
+
+        for (int i = 0; i < bulletCounter2; i++) { //Update the bullets already created
+            if (bullet2[i] -> active) 
+                bulletThrust(bullet2[i], _yMax, _xMax);
+        }
+
+        for (int i = 0; i < bulletCounter1; i++) { //Collisions between bullets
+            for (int j = 0; j < bulletCounter2; j++) {
+                if (colBulxBul(bullet1[i], bullet2[j])) {
+                    bullet1[i] -> active = false;
+                    bullet2[j] -> active = false;
+                    delBullet(bullet1[i]);
+                    delBullet(bullet2[j]);
+                }
+            }
+        }
+
+        //checking for collisions between bullets and rocket 1
+        for (int i = 0; i < bulletCounter2; i++) {
+            if (bullet2[i]->active) {
+                if (check_collisions(r1->posX, r1->posY,bullet2[i]->posX, bullet2[i]->posY))
+                    r1->crashed = true;
+            }
+        }
+
+        //checking for collisions between bullets and rocket 2
+        for (int i = 0; i < bulletCounter1; i++) {
+            if (bullet1[i]->active) {
+                if (check_collisions(r2->posX, r2->posY, bullet1[i]->posX, bullet1[i]->posY))
+                    r2->crashed = true;
+            }
+        }
+
     }
 }
 
@@ -926,9 +983,6 @@ void resetRockets (struct Rocket * r1, struct Rocket * r2) {
 
 int main()
 {
-
-    
-
     //CREATES THE WINDOW AND THE BOX
     initscr(); //initializates the screen
     refresh(); //this refresh is needed to refresh the parent window
@@ -945,7 +999,6 @@ int main()
     keypad(win, TRUE); //allows the use of arrow keys and F keys
     // nodelay(win , true);
 
-    printw("test 1");
     startScreen(yMax, xMax, win);
     box(win, 0, 0); //when doing startScreen, we delete the box, so we have to recreate it again.
 
@@ -960,22 +1013,16 @@ int main()
 
     //INITIALISATION OF BLACK HOLE
     struct BlackHole * hole = newBlackHole(yMax/2, xMax/2);
-    struct Bullet * bullet[MAX_BULLETS];
-
 
     refresh();
 
     while ((rocket1 -> score != MAX_POINTS) && (rocket2 -> score != MAX_POINTS)) {
-        createScenario(rocket1, rocket2); //create screen with rockets, score, and fuel
-        gameRunner(bullet, rocket1, rocket2, yMax, xMax, hole, win); 
+        createScenario(rocket1, rocket2, win); //create screen with rockets, score, and fuel
+        gameRunner(rocket1, rocket2, yMax, xMax, hole, win); 
         addScore(rocket1, rocket2);
         resetRockets(rocket1, rocket2);
     }
     
-
-    
-
-
 
     //END OF THE GAME
     endwin(); //stops the window, terminates the program
