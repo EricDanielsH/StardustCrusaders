@@ -11,8 +11,9 @@
 #define BOARD_DIMENSIONS  50 //If this number in odd, some problems will happen to the box
 #define BOARD_COLS BOARD_DIMENSIONS
 #define BOARD_ROWS BOARD_DIMENSIONS * 2.5  //the ratio of the size of rows to cols is aprox 2->5
-#define MAX_BULLETS 15 //This is the max amount of bullet that a rocket can shoot in total
+#define MAX_BULLETS 50 //This is the max amount of bullet that a rocket can shoot in total
 #define MAX_POINTS 5
+#define MIN_FIRE_RATE 1000 //This is equivalent to 1 sec
 
 
 
@@ -102,16 +103,16 @@ void bulletCollisionBorders (struct Bullet * b, int _yMax, int _xMax) {
 
     //Add 6 to each one so it doesnt clear the border
 
-    if (b->posY < (_yMax - BOARD_COLS)/2 + 5)  //Limitations so it doesnt go out from the top
+    if (b->posY < (_yMax - BOARD_COLS)/2 + 4)  //Limitations so it doesnt go out from the top
         b -> active = false;
 
-    if (b->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 6) //Limitations so it doesnt go out from the bottom
+    if (b->posY > (_yMax - BOARD_COLS)/2 + BOARD_COLS - 4) //Limitations so it doesnt go out from the bottom
         b ->active = false;
 
-    if (b->posX < (_xMax/2) - (BOARD_ROWS/2) + 6) //Limitations so it doesnt go out from the left
+    if (b->posX < (_xMax/2) - (BOARD_ROWS/2) + 4) //Limitations so it doesnt go out from the left
         b ->active = false;
 
-    if (b->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 6) //Limitations so it doesnt go out of from the right
+    if (b->posX > (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 4) //Limitations so it doesnt go out of from the right
         b ->active = false;
 
     if (!b -> active)
@@ -125,7 +126,7 @@ void bulletCollisionBorders (struct Bullet * b, int _yMax, int _xMax) {
 
 void printBullet (struct Bullet * b, int _yMax, int _xMax) {
     bulletCollisionBorders(b, _yMax, _xMax);
-    if (b -> crashed != true) {
+    if (b -> active == true) {
         move (b -> posY, b -> posX);
         printw("*");
         refresh();
@@ -796,10 +797,20 @@ void printFuel2 (struct Rocket * r) { //Print score of rocket 1
 
 void addScore (struct Rocket * r1, struct Rocket * r2) {
     //If something happens, add +10 to the score, and print it again.
+
+    if (r2 -> crashed == true && r1 -> crashed == true) {
+        r1 -> score = r1 -> score + 1;
+        r2 -> score = r2 -> score + 1;
+        return;
+    }
+
     if (r1 -> crashed == true)
         r2 -> score = r2 -> score + 1;
     if (r2 -> crashed == true)
         r1 -> score = r1 -> score + 1;
+
+    
+        
 }
 
 void gravityBullet (struct Bullet * b, int _yMax, int _xMax) {
@@ -888,9 +899,14 @@ void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
     struct Bullet * bullet1[MAX_BULLETS];
     struct Bullet * bullet2[MAX_BULLETS];
 
+    clock_t lastTS1 = clock (); //Last time shoot of rocket 1
+    clock_t lastTS2 = clock (); //Last time shoot of rocket 2
+
 
     while ((r1 -> crashed != true) && (r2 -> crashed != true)) //game loop
     {    
+        clock_t nowTime = clock();
+
         changeBlackHole(screen, bh);  //Gives an animation to the black blackhole
 
         gravityRocket(r1, r2, _yMax, _xMax, bh);
@@ -899,25 +915,28 @@ void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
         int input = getKeys(r1, r2, screen, _yMax, _xMax, bh); //Ask for an input
 
         if (input == 119 && bulletCounter1 < MAX_BULLETS) { //Check if the key for shooting P1 has been pressed
-            bullet1[bulletCounter1] = newBullet(r1, _yMax, _xMax);
-            bullet1[bulletCounter1] -> active = true;
-            bulletCounter1++;
-        }
 
-        for (int i = 0; i < bulletCounter1; i++) { //Update the bullets already created
-            if (bullet1[i] -> active) 
-                bulletThrust(bullet1[i], _yMax, _xMax);
+            
+            double lapse = (double)(nowTime - lastTS1); 
+
+            if (lapse >= MIN_FIRE_RATE) { //ONLY CREATE THE BULLET IF THE TIME RATE IS APPROVED
+                bullet1[bulletCounter1] = newBullet(r1, _yMax, _xMax);
+                bullet1[bulletCounter1]->active = true;
+                bulletCounter1++;
+                lastTS1 = nowTime;  // Update the last fired time for rocket 1
+            }
         }
 
         if (input == 105 && bulletCounter2 < MAX_BULLETS) { //Check if the key for shooting P2 has been pressed
-            bullet2[bulletCounter2] = newBullet(r2, _yMax, _xMax);
-            bullet2[bulletCounter2] -> active = true;
-            bulletCounter2++;
-        }
 
-        for (int i = 0; i < bulletCounter2; i++) { //Update the bullets already created
-            if (bullet2[i] -> active) 
-                bulletThrust(bullet2[i], _yMax, _xMax);
+            double lapse = (double)(nowTime - lastTS2);
+
+            if (lapse >= MIN_FIRE_RATE) { //ONLY CREATE THE BULLET IF THE TIME RATE IS APPROVED
+                bullet2[bulletCounter2] = newBullet(r2, _yMax, _xMax);
+                bullet2[bulletCounter2]->active = true;
+                bulletCounter2++;
+                lastTS2 = nowTime;  // Update the last fired time for rocket 2
+            }
         }
 
         for (int i = 0; i < bulletCounter1; i++) { //Collisions between bullets
@@ -927,6 +946,9 @@ void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
                     bullet2[j] -> active = false;
                     delBullet(bullet1[i]);
                     delBullet(bullet2[j]);
+
+                    //No deallocation of memory, as you cant do two deallocations in the same time
+                    //Error: free(): double free detected in tcache 2 -> aborted
                 }
             }
         }
@@ -945,6 +967,18 @@ void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
                 if (check_collisions(r2->posX, r2->posY, bullet1[i]->posX, bullet1[i]->posY))
                     r2->crashed = true;
             }
+        }
+
+        /*Afte checking all collisions, we can print move the bullets*/
+
+        for (int i = 0; i < bulletCounter1; i++) { //Update the bullets already created by rocket 1
+            if (bullet1[i] -> active) 
+                bulletThrust(bullet1[i], _yMax, _xMax);
+        }
+
+        for (int i = 0; i < bulletCounter2; i++) { //Update the bullets already created by rocket 2
+            if (bullet2[i] -> active) 
+                bulletThrust(bullet2[i], _yMax, _xMax);
         }
 
     }
