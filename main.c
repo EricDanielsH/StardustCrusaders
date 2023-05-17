@@ -8,7 +8,7 @@
 #include <time.h>
 
 //Creating some constants for the board dimensions
-#define BOARD_DIMENSIONS  50 //If this number in odd, some problems will happen to the box
+#define BOARD_DIMENSIONS  70 //If this number in odd, some problems will happen to the box
 #define BOARD_COLS BOARD_DIMENSIONS
 #define BOARD_ROWS BOARD_DIMENSIONS * 2.5  //the ratio of the size of rows to cols is aprox 2->5
 #define MAX_BULLETS 50 //This is the max amount of bullet that a rocket can shoot in total
@@ -582,36 +582,41 @@ void rotateRight (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, 
     }
 }
 
-void hyperSpace(struct Rocket * r, int _yMax, int _xMax, struct BlackHole * bh) { //TP to random location
+void hyperSpace(struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh) { //TP to random location
 
-    if (r -> hyperSpace == true) //If hyperSpace has already been used, leave the function
+    if (r1 -> hyperSpace == true) //If hyperSpace has already been used, leave the function
         return;
 
-    int upperLimit = (_yMax - BOARD_COLS)/2 + 1;
-    int lowerLimit = (_yMax - BOARD_COLS)/2 + BOARD_COLS - 2;
-    int leftLimit = (_xMax/2) - (BOARD_ROWS/2) + 1;
-    int rightLimit = (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 2;
+    int upperLimit = (_yMax - BOARD_COLS)/2 + 2;
+    int lowerLimit = (_yMax - BOARD_COLS)/2 + BOARD_COLS - 3; 
+    int leftLimit = (_xMax/2) - (BOARD_ROWS/2) + 2;
+    int rightLimit = (_xMax/2) - (BOARD_ROWS/2) + BOARD_ROWS - 3; 
 
+    int yRandom = 0;
+    int xRandom = 0;
 
-    srand(time(NULL)); //Initialization for random, only called once.
+    int count=0;
 
-    int yRandom;
-    int xRandom;
-
-    do {
-        yRandom =  rand() % lowerLimit;
-        xRandom = rand() % rightLimit;
+    while ((yRandom < upperLimit || yRandom > lowerLimit) || (xRandom < leftLimit || xRandom > rightLimit) || (yRandom == bh->posY) || (xRandom == bh->posX) || (yRandom == r2->posY) || (xRandom == r2->posX)) {
+        yRandom = (rand() % (lowerLimit - upperLimit + 1)) + upperLimit;
+        xRandom = (rand() % (rightLimit - leftLimit + 1)) + leftLimit;
+        if(yRandom < upperLimit)
+            yRandom += upperLimit;
+        if (xRandom < leftLimit)
+            xRandom += leftLimit;
+        count++;
+        
     }
-    while ((upperLimit < yRandom < lowerLimit) && (leftLimit < xRandom < rightLimit) && (yRandom != bh->posY) && (xRandom != bh -> posX)) ;
 
-    delRocket(r); //clear the rocket before changing the new position
+    delRocket(r1); //clear the rocket before changing the new position
     
-    r -> posY = yRandom;
-    r -> posX = xRandom;
+    r1 -> posY = yRandom;
+    r1 -> posX = xRandom;
 
-    printRocketStart(r); //print the new rocket
+    printRocketStart(r1); //print the new rocket
+    printRocketTrail(r1); //print the rocket trails
 
-    r -> hyperSpace = true; //hyperSpace has been used, so it cannot be used again later.
+    r1 -> hyperSpace = true; //hyperSpace has been used, so it cannot be used again later.
 }
 
 
@@ -653,11 +658,11 @@ int getKeys(struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, 
                 break;
 
             case 113: //Q = HYPERSPACE
-                hyperSpace(r1, _yMax, _xMax, bh);
+                hyperSpace(r1, r2, _yMax, _xMax, bh);
                 break;
 
             case 117: //U = HYPERSPACE
-                hyperSpace(r2, _yMax, _xMax, bh);
+                hyperSpace(r2, r1, _yMax, _xMax, bh);
                 break;
             
 
@@ -892,6 +897,7 @@ bool colBulxBul (struct Bullet * b1, struct Bullet * b2) {
 }
 
 
+/*MOST IMPORTANT FUNCTION, THIS IS WHAT RUNS THE GAME*/
 void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, struct BlackHole * bh, WINDOW * screen) {
     
     int bulletCounter1 = 0;
@@ -1017,6 +1023,8 @@ void resetRockets (struct Rocket * r1, struct Rocket * r2) {
 
 int main()
 {
+
+    srand(time(NULL)); //Initialization for random, only called once.
     //CREATES THE WINDOW AND THE BOX
     initscr(); //initializates the screen
     refresh(); //this refresh is needed to refresh the parent window
