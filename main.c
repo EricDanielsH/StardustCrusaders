@@ -11,9 +11,10 @@
 #define BOARD_DIMENSIONS  50 // If this number in odd, some problems will happen to the box
 #define BOARD_COLS BOARD_DIMENSIONS
 #define BOARD_ROWS BOARD_DIMENSIONS * 2.5  // the ratio of the size of rows to cols is aprox 2->5
-#define MAX_BULLETS 50 // This is the max amount of bullet that a rocket can shoot in total
-#define MAX_POINTS 5
-#define MIN_FIRE_RATE 1000 // This is equivalent to 1 sec
+#define MAX_BULLETS 25 // This is the max amount of bullet that a rocket can shoot in total
+#define MAX_FIRE_RATE 1500 // 3000 is equivalent to 1 second
+#define GRAVITY_STRENGTH 1 //This is the speed of the gravity. The min value is 1.
+#define MAX_POINTS 5 //Points needed to finish the game
 
 
 /////////////////////////
@@ -113,7 +114,7 @@ struct Rocket * newRocket (char _name[10], int Y, int X, int _angle, int _number
     rocket -> speed = 1;
     rocket -> acc = 4;
     rocket -> score = 0;
-    rocket -> gravity = 1;
+    rocket -> gravity = GRAVITY_STRENGTH;
     rocket -> fuel = 100;
     rocket -> number = _number;
     rocket -> hyperSpace = false;
@@ -775,14 +776,32 @@ int getKeys(struct Rocket * r1, struct Rocket * r2, WINDOW * screen, int _yMax, 
     return KeyPress; 
 }
 
+// Prints the title of the game
+void mainTitle (int _yMax, int _xMax) {
+    mvprintw((_yMax/2) - 8, (_xMax/2) - 46,"   _____ __                 __           __     ______                          __              \n");
+    mvprintw((_yMax/2) - 7, (_xMax/2) - 46,"  / ___// /_____ __________/ /_  _______/ /_   / ____/______  ___________ _____/ /__  __________\n");
+    mvprintw((_yMax/2) - 6, (_xMax/2) - 46,"  \\__ \\/ __/ __ `/ ___/ __  / / / / ___/ __/  / /   / ___/ / / / ___/ __ `/ __  / _ \\/ ___/ ___/\n");
+    mvprintw((_yMax/2) - 5, (_xMax/2) - 46," ___/ / /_/ /_/ / /  / /_/ / /_/ (__  ) /_   / /___/ /  / /_/ (__  ) /_/ / /_/ /  __/ /  (__  ) \n");
+    mvprintw((_yMax/2) - 4, (_xMax/2) - 46,"/____/\\__/\\__,_/_/   \\__,_/\\__,_/____/\\__/   \\____/_/   \\__,_/____/\\__,_/\\__,_/\\___/_/  /____/  \n");
+
+
+    // (_yMax/2) - 4, (_xMax/2) - 44,
+}
+
 // Prints the starting screen
-void startScreen(int _yMax, int _xMax, WINDOW * screen) {
-    move(_yMax/2, (_xMax/2) - 24);
-    printw("Welcome to the Epic Space Wars!!!! (really epic)");
-    move(_yMax/2 + 1, (_xMax/2) - 15);
+void startScreen(struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, WINDOW * screen) {
+
+    mainTitle(_yMax, _xMax);
+    move((_yMax/2), (_xMax/2) - 15);
     printw("Press any key to start the game");
-    refresh();
-    halfdelay(100); // Gives 10 seconds to wait for any inpuy. Even if no key is pressed, the game will start after 5secs
+    move((_yMax/2) + 4 , (_xMax/2) - 10);
+    printw("%s: W, A, S, D", r1 -> name);
+    move((_yMax/2) + 5 , (_xMax/2) - 10);
+    printw("%s: I, J, K, L", r2 -> name);
+    move((_yMax/2) + 7 , (_xMax/2) - 9);
+    printw("Hyperspace: Q, U");
+    wrefresh(screen);
+    halfdelay(200); // Gives 20 seconds to wait for any inpuy. Even if no key is pressed, the game will start after 5secs
     getch();
     erase();
     halfdelay(1); // Go back to the lowest value of input waiting time`
@@ -796,7 +815,7 @@ void waitingScreen(struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax,
     move(_yMax/2, (_xMax/2) - 7);
     printw("Nice Round!!!!!");
     move(_yMax/2 + 1, (_xMax/2) - 20);
-    printw("Get ready for the next battle, WarLord!");
+    printw("Get ready for the next battle, SpaceLord!");
     move(_yMax/2 + 2, (_xMax/2) - 6);
     printw("CURRENT SCORE");
     move(_yMax/2 + 3, (_xMax/2) - 10);
@@ -906,7 +925,7 @@ void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
 
             double lapse = (double)(nowTime - lastTS1); 
 
-            if (lapse >= MIN_FIRE_RATE) { // ONLY CREATE THE BULLET IF THE TIME RATE IS APPROVED
+            if (lapse >= MAX_FIRE_RATE) { // ONLY CREATE THE BULLET IF THE TIME RATE IS APPROVED
                 bullet1[bulletCounter1] = newBullet(r1, _yMax, _xMax);
                 bullet1[bulletCounter1]->active = true;
                 bulletCounter1++;
@@ -918,7 +937,7 @@ void gameRunner (struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, s
 
             double lapse = (double)(nowTime - lastTS2);
 
-            if (lapse >= MIN_FIRE_RATE) { // ONLY CREATE THE BULLET IF THE TIME RATE IS APPROVED
+            if (lapse >= MAX_FIRE_RATE) { // ONLY CREATE THE BULLET IF THE TIME RATE IS APPROVED
                 bullet2[bulletCounter2] = newBullet(r2, _yMax, _xMax);
                 bullet2[bulletCounter2]->active = true;
                 bulletCounter2++;
@@ -1026,12 +1045,8 @@ int main()
     // starts a new window (height, width, starting Y of cursor, starting X of cursor)
     // (yMax/2) - halfHeight->->->->-> This will make it centered on the screen-> Same applies to the width
 
-    box(win, 0, 0); // creates a box inside of window-> arg2 and arg3 are the type of borders that the box has
     wrefresh(win); // refreshes the visuals of the window
     keypad(win, TRUE); // allows the use of arrow keys and F keys
-    // nodelay(win , true);
-
-    startScreen(yMax, xMax, win); // We start the screen
 
     /* INITIALISATION OF ROCKET 1 and 2 */
 
@@ -1041,8 +1056,9 @@ int main()
     /* INITIALISATION OF BLACK HOLE */
 
     struct BlackHole * hole = newBlackHole(yMax/2, xMax/2);
+    
+    startScreen(rocket1, rocket2, yMax, xMax, win); // We start the screen
     refresh();
-
 
     /* MAIN WHILE LOOP */
 
