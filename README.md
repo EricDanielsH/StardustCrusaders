@@ -30,10 +30,10 @@ The **controls** are really basic:<br><br>
 
 ## How to start the game
 You only have to do some simple steps:
-* Pull the repository from github into your machine (Use this in your terminal: "*git pull https://github.com/EricDanielsH/EpicSpaceWar*")
-* Make sure that you have the ncurses library installed
-* Compile the program (Do: "*gcc -o main main.c -lncurses -g*")
-* Start the program (Do: "*./main*")
+* Pull the repository from github into your machine (Use this in your terminal: "*git pull https://github.com/EricDanielsH/EpicSpaceWar*").
+* Make sure that you have the ncurses library installed.
+* Compile the program (Do: "*gcc -o main main.c -lncurses -g*").
+* Start the program (Do: "*./main*").
 
 ## Variables that you can change!
 This program allows the user to change some variables to customize the game as the player wants. All of these variables are found at the beggining of the program file. All variables have to be positive.
@@ -55,3 +55,4 @@ This is not recommended, but you can also change the name of each ship in lines:
 ## Considerations that didn't make the game
 * Increased gravity after each round. The gravity pull force is already good enough at the minimum value, and I think that if this value is increased, each round would only last 1 second.
 * Adding gravity to bullets. One reason is that the original game does not have gravity force for the bullets. The other reason is that it would be really difficult to aim and hit a spaceship when the bullets do not go straight.
+* Adding sounds. Sounds could not be added due to the absence of sound libraries installed in the computer labs (and the and the restriction of downloading libraries into the lab machines).
