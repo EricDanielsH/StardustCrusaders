@@ -106,7 +106,9 @@ struct Rocket * newRocket (char _name[10], int Y, int X, int _angle, int _number
 
     struct Rocket * rocket = (struct Rocket *) malloc(sizeof(struct Rocket));
 
-    strcpy (rocket -> name, _name);
+
+        strcpy (rocket -> name, _name);
+
     rocket -> posY = Y;
     rocket -> posX = X;
     rocket -> crashed = false;
@@ -788,6 +790,54 @@ void mainTitle (int _yMax, int _xMax) {
     // (_yMax/2) - 4, (_xMax/2) - 44,
 }
 
+void gameOver (int _yMax, int _xMax, struct Rocket * r1, struct Rocket * r2, WINDOW * screen) {
+
+    erase(); // Clears the window
+    char winner[10];
+
+    if ((r1 -> score) < (r2 -> score)) { // If the score of rocket2 is bigger, rocket 2 is winner
+        strncpy(winner, r2 -> name, 10);
+    }
+        
+    if ((r1 -> score) > (r2 -> score)) { // If the score of rocket1 is bigger, rocket 1 is winner
+        strncpy(winner, r1 -> name, 10);
+    }
+
+    mvprintw((_yMax/2) - 14, (_xMax/2) - 30, " __       __  ______  __    __  __    __  ________  _______  \n");
+    mvprintw((_yMax/2) - 13, (_xMax/2) - 30, "|  \\  _  |  \\|      \\|  \\  |  \\|  \\  |  \\|        \\|       \\ \n");
+    mvprintw((_yMax/2) - 12, (_xMax/2) - 30, "| $$ / \\ | $$ \\$$$$$$| $$\\ | $$| $$\\ | $$| $$$$$$$$| $$$$$$$\\\n");
+    mvprintw((_yMax/2) - 11, (_xMax/2) - 30, "| $$/  $\\| $$  | $$  | $$$\\| $$| $$$\\| $$| $$__    | $$__| $$\n");
+    mvprintw((_yMax/2) - 10, (_xMax/2) - 30, "| $$  $$$\\ $$  | $$  | $$$$\\ $$| $$$$\\ $$| $$  \\   | $$    $$\n");
+    mvprintw((_yMax/2) - 9, (_xMax/2) - 30, "| $$ $$\\$$\\$$  | $$  | $$\\$$ $$| $$\\$$ $$| $$$$$   | $$$$$$$\\\n");
+    mvprintw((_yMax/2) - 8, (_xMax/2) - 30, "| $$$$  \\$$$$ _| $$_ | $$ \\$$$$| $$ \\$$$$| $$_____ | $$  | $$\n");
+    mvprintw((_yMax/2) - 7, (_xMax/2) - 30, "| $$$    \\$$$|   $$ \\| $$  \\$$$| $$  \\$$$| $$     \\| $$  | $$\n");
+    mvprintw((_yMax/2) - 6, (_xMax/2) - 30, " \\$$      \\$$ \\$$$$$$ \\$$   \\$$ \\$$   \\$$ \\$$$$$$$$ \\$$   \\$$\n");
+
+
+    mvprintw((_yMax/2) + 4, (_xMax/2) - 31, "The WINNER is %s!!!!! You are the real Space Crusader!!!", winner);
+    
+    mvprintw((_yMax/2) + 7, (_xMax/2) - 27, "                     `. ___\n");
+    mvprintw((_yMax/2) + 8, (_xMax/2) - 27, "                    __,' __`.                _..----....____\n");
+    mvprintw((_yMax/2) + 9, (_xMax/2) - 27, "        __...--.'``;.   ,.   ;``--..__     .'    ,-._    _.-'\n");
+    mvprintw((_yMax/2) + 10, (_xMax/2) - 27, "  _..-''-------'   `'   `'   `'     O ``-''._   (,;') _,'\n");
+    mvprintw((_yMax/2) + 11, (_xMax/2) - 27, ",'________________                          \\`-._`-','\n");
+    mvprintw((_yMax/2) + 12, (_xMax/2) - 27, " `._              ```````````------...___   '-.._'-:\n");
+    mvprintw((_yMax/2) + 13, (_xMax/2) - 27, "    ```--.._      ,.                     ````--...__\\-.\n");
+    mvprintw((_yMax/2) + 14, (_xMax/2) - 27, "            `.--. `-`                       ____    |  |`\n");
+    mvprintw((_yMax/2) + 15, (_xMax/2) - 27, "              `. `.                       ,'`````.  ;  ;`\n");
+    mvprintw((_yMax/2) + 16, (_xMax/2) - 27, "                `._`.        __________   `.      \'__/`\n");
+    mvprintw((_yMax/2) + 17, (_xMax/2) - 27, "                   `-:._____/______/___/____`.     \\  `\n");
+    mvprintw((_yMax/2) + 18, (_xMax/2) - 27, "                               |       `._    `.    \\ \n");
+    mvprintw((_yMax/2) + 19, (_xMax/2) - 27, "                               `._________`-.   `.   `.___\n");
+    mvprintw((_yMax/2) + 20, (_xMax/2) - 27, "                                                  `------'`\n");
+
+
+    wrefresh(screen);
+    refresh();
+    napms(5000); // Stops the program for 5 seconds
+
+}
+
 // Prints the starting screen
 void startScreen(struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, WINDOW * screen) {
 
@@ -1072,6 +1122,7 @@ int main()
     
     /* END OF THE GAME */
 
+    gameOver(yMax, xMax, rocket1, rocket2, win);
     endwin(); // stops the window, terminates the program
     printWinner(rocket1, rocket2);
     return 0;
