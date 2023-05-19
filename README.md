@@ -38,9 +38,9 @@ You only have to do some simple steps:
 ## Variables that you can change!
 This program allows the user to change some variables to customize the game as the player wants. All of these variables are found at the beggining of the program file. All variables have to be positive.
 
-* **BOARD_DIMENSIONS** -> This variable controls the dimensions of the board. If you like to make the board of the game smaller, decrease this value. It is set by **default to 50.**
+* **BOARD_DIMENSIONS** -> This variable controls the dimensions of the board. If you like to make the board of the game smaller, decrease this value. It is set by **default to 50.** 
 
-    *Bonus tip:* You can increase the size of the board while decreasing the size of the terminal. In my experience, for each time you decrease your terminal size, you can add 10 to the BOARD_DIMENSIONS variable.
+    *Bonus tip:* You can increase the size of the board while decreasing the size of the terminal. In my experience, for each time you decrease your terminal size, you can add 10 to the BOARD_DIMENSIONS variable. I **REALLY** recommend doing this.
 
 * **MAX_BULLETS** -> This variable refers to the maximum amount of bulletes that each spaceship can fire. The **default value of this variable is 25.** Reduce this variable if you feel your aim on point!
 
