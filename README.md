@@ -12,25 +12,25 @@ The **controls** are really basic:<br><br>
     Player 1: W, A, S, D, Q <br>
     Player 2: I, J, K, L, U
 
-* To **rotate**, use:
-    Player 1: A, D
+* To **rotate**, use:<br>
+    Player 1: A, D<br>
     Player 2: J, L
 
-* To **thrust**, use:
-    Player 1: S
+* To **thrust**, use:<br>
+    Player 1: S<br>
     Player 2: K
 
-* To **shoot**, use:
-    Player 1: W
+* To **shoot**, use:<br>
+    Player 1: W<br>
     Player 2: I
 
-* To **Hyperspace**, use:
-    Player 1: Q
+* To **Hyperspace**, use:<br>
+    Player 1: Q<br>
     Player 2: U
 
 ## How to start the game
 You only have to do some simple steps:
-* Pull the repository from github into your machine (Use this in your terminal: "*git pull https://github.com/EricDanielsH/EpicSpaceWar*").
+* Pull the repository from github into your machine (Use this in your terminal: "*git pull https://github.com/EricDanielsH/EpicSpaceWar*") and enter your account parameters if asked.
 * Make sure that you have the ncurses library installed.
 * Compile the program (Do: "*gcc -o main main.c -lncurses -g*").
 * Start the program (Do: "*./main*").
