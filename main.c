@@ -445,8 +445,6 @@ void hyperSpace(struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, st
     int yRandom = 0;
     int xRandom = 0;
 
-    int count=0;
-
     while ((yRandom < upperLimit || yRandom > lowerLimit) || (xRandom < leftLimit || xRandom > rightLimit) || (yRandom == bh->posY) || (xRandom == bh->posX) || (yRandom == r2->posY) || (xRandom == r2->posX)) {
         yRandom = (rand() % (lowerLimit - upperLimit + 1)) + upperLimit;
         xRandom = (rand() % (rightLimit - leftLimit + 1)) + leftLimit;
@@ -454,7 +452,6 @@ void hyperSpace(struct Rocket * r1, struct Rocket * r2, int _yMax, int _xMax, st
             yRandom += upperLimit;
         if (xRandom < leftLimit)
             xRandom += leftLimit;
-        count++;
         
     }
 
