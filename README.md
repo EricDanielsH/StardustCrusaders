@@ -30,7 +30,7 @@ The **controls** are really basic:<br><br>
 
 ## How to start the game
 You only have to do some simple steps:
-* Pull the repository from github into your machine (Use this in your terminal: "*git pull https://github.com/EricDanielsH/EpicSpaceWar*") and enter your account parameters if asked.
+* Pull the repository from github into your machine (Use this in your terminal: "*git clone https://github.com/EricDanielsH/EpicSpaceWar*") and enter your account parameters if asked.
 * Make sure that you have the ncurses library installed.
 * Compile the program (Do: "*gcc -o main main.c -lncurses -g*").
 * Start the program (Do: "*./main*").
